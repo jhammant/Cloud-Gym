@@ -1,0 +1,41 @@
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Baseline Models}
+\label{sec:baselines}
+
+We evaluate two open-weight models in a zero-shot repair setting:
+\begin{itemize}
+    \item \textbf{DeepSeek-R1 1.5B}: A small reasoning model, serving as a performance floor.
+    \item \textbf{Qwen2.5-Coder 7B}: A code-specialized model, serving as the main baseline.
+\end{itemize}
+
+Both models are run locally via Ollama. The repair prompt provides the broken configuration and its validation errors, asking the model to return only the fixed configuration.
+
+\subsection{Results}
+\label{sec:results}
+
+% TODO: Insert results tables (auto-generated from baseline runs)
+
+% \begin{table}[h]
+% \centering
+% \caption{Overall pass@$k$ results.}
+% \label{tab:overall_results}
+% \begin{tabular}{lcc}
+% \toprule
+% Model & pass@1 & pass@3 \\
+% \midrule
+% DeepSeek-R1 1.5B & -- & -- \\
+% Qwen2.5-Coder 7B & -- & -- \\
+% \bottomrule
+% \end{tabular}
+% \end{table}
+
+\subsection{Analysis}
+\label{sec:analysis}
+
+% TODO: Add analysis by category, difficulty, and format
+% - Syntactic faults are easiest to repair
+% - Semantic and cross-resource faults are most challenging
+% - CF vs TF comparison
+% - Difficulty level correlation with repair success

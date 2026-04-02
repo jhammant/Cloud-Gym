@@ -1,0 +1,46 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Fault Taxonomy}
+\label{sec:taxonomy}
+
+We define a taxonomy of 37 fault types organized into 8 categories, designed to cover the spectrum of real-world IaC misconfigurations. Table~\ref{tab:taxonomy} summarizes the taxonomy.
+
+% TODO: Insert taxonomy table (auto-generated from code)
+% \input{figures/taxonomy_table}
+
+\begin{itemize}
+    \item \textbf{Syntactic} (7 faults): Parse-level errors including missing braces, type mismatches, invalid syntax, and missing required arguments.
+    \item \textbf{Reference} (6 faults): Broken variable references, non-existent resource references, undefined parameters, and invalid module sources.
+    \item \textbf{Semantic} (7 faults): Logically invalid values such as wrong resource types, malformed AMI IDs, invalid CIDR blocks, and non-existent regions.
+    \item \textbf{Dependency} (4 faults): Circular dependencies and missing ordering constraints.
+    \item \textbf{Provider} (2 faults): Missing provider configurations and impossible version constraints.
+    \item \textbf{Security} (4 faults): Overly permissive network rules and missing encryption.
+    \item \textbf{Cross-Resource} (3 faults): Mismatched VPC/subnet references and wrong availability zones.
+    \item \textbf{Intrinsic} (4 faults, CF-only): Malformed \texttt{!Sub}, out-of-bounds \texttt{!Select}, undefined conditions, and invalid \texttt{!Join}.
+\end{itemize}
+
+\subsection{Inversion Engine}
+\label{sec:inversion}
+
+The inversion engine transforms gold (valid) configurations into broken ones via targeted fault injection. Given a gold config $c_g$ and fault type $f$, the engine produces a broken config $c_b$ such that:
+\begin{enumerate}
+    \item $c_b \neq c_g$ (the config was actually modified),
+    \item $\text{validate}(c_b) = \text{FAIL}$ (the modification breaks validation), and
+    \item The diff between $c_g$ and $c_b$ is minimal (single-fault injection).
+\end{enumerate}
+
+\paragraph{Programmatic Injection.} For Terraform/HCL, we use a parse-then-regex approach: \texttt{python-hcl2} parses the config for structural analysis, then targeted string manipulation applies the fault. For CloudFormation, we use YAML/JSON round-trip mutation. Each fault type has a dedicated injector function.
+
+\paragraph{Agentic Injection.} We also employ local LLMs (via Ollama) for diverse fault generation, with quality gates ensuring similarity ($\geq 0.7$) and minimal diff ($<20\%$ lines changed).
+
+\subsection{Evaluation Protocol}
+\label{sec:evaluation}
+
+We evaluate repair models using the pass@$k$ metric~\citep{chen2021codex}:
+\[
+\text{pass@}k = \mathbb{E}\left[1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}\right]
+\]
+where $n$ is the number of attempts and $c$ is the number of correct repairs. A repair is correct if the repaired config passes validation with zero errors.
+
+% TODO: Add pipeline diagram figure

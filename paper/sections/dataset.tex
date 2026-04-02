@@ -1,0 +1,38 @@
+\section{Dataset}
+\label{sec:dataset}
+
+\subsection{Gold Configuration Collection}
+\label{sec:gold_collection}
+
+We collect gold (valid) IaC configurations from three sources:
+\begin{itemize}
+    \item \textbf{GitHub}: Public repositories containing Terraform and CloudFormation files, filtered by minimum resource count and validated.
+    \item \textbf{Terraform Registry}: Official modules from the Terraform Registry.
+    \item \textbf{AWS Samples}: CloudFormation templates from AWS's official sample repositories.
+\end{itemize}
+
+All collected configurations are validated using \texttt{terraform validate} (for Terraform) or \texttt{cfn-lint} (for CloudFormation). Only configurations that pass validation are retained as gold instances.
+
+% TODO: Add table with collection statistics
+
+\subsection{Training Data Generation}
+\label{sec:training_data}
+
+From the gold configurations, we generate training pairs using the inversion engine (Section~\ref{sec:inversion}). For each gold config, we apply $N$ programmatic fault injections via stratified sampling across categories, plus $M$ agentic injections for diversity.
+
+The resulting dataset is split by gold config hash to prevent leakage: all variants derived from the same gold config appear in the same split (train/val/test at 80/10/10).
+
+% TODO: Add dataset statistics table
+
+\subsection{Benchmark Curation}
+\label{sec:benchmark}
+
+From the test split, we curate a balanced benchmark subset with the following criteria:
+\begin{itemize}
+    \item Single-fault configurations only
+    \item Minimum 10-line configs (non-trivial)
+    \item Balanced across fault categories and difficulty levels
+    \item Deduplicated per gold config
+\end{itemize}
+
+% TODO: Add benchmark statistics table

@@ -1,0 +1,16 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented Cloud-Gym, a benchmark and data generation framework for evaluating LLM-based repair of Infrastructure-as-Code configurations. Our 37-fault taxonomy covers the spectrum of real-world IaC misconfigurations across Terraform and CloudFormation. The programmatic inversion engine generates validated training pairs at scale, and the evaluation harness provides fine-grained pass@$k$ metrics.
+
+Our baseline results indicate that current open-weight models show varying repair capability across fault categories, with syntactic faults being most amenable to repair and semantic/cross-resource faults posing the greatest challenge. This gap motivates future work in IaC-specific model training and more sophisticated repair strategies.
+
+\paragraph{Future Work.}
+\begin{itemize}
+    \item Fine-tuning models on Cloud-Gym training data
+    \item Extending the taxonomy to additional IaC tools (Pulumi, CDK, Ansible)
+    \item Multi-fault repair scenarios
+    \item Integration with CI/CD pipelines for real-time repair suggestions
+\end{itemize}
+
+% TODO: Finalize based on experimental results

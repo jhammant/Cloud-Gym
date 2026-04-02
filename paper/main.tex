@@ -1,0 +1,63 @@
+\documentclass[11pt]{article}
+
+% NeurIPS/ICML style packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{natbib}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{listings}
+\usepackage{subcaption}
+
+% Page layout
+\usepackage[margin=1in]{geometry}
+
+% Code listing style
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red!80!black},
+}
+
+\title{Cloud-Gym: A Benchmark for LLM-Based Infrastructure-as-Code Repair}
+
+\author{
+  Author Name \\
+  Affiliation \\
+  \texttt{email@example.com}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Infrastructure-as-Code (IaC) configurations are critical to modern cloud deployments, yet LLM-based repair of broken IaC remains underexplored due to the lack of standardized benchmarks. We present \textbf{Cloud-Gym}, a benchmark and training data generation framework for evaluating LLM repair of Terraform and CloudFormation configurations. Cloud-Gym features a 37-fault taxonomy spanning 8 categories (syntactic, reference, semantic, dependency, provider, security, cross-resource, and intrinsic function faults), a programmatic inversion engine that generates validated broken configurations from gold instances, and an evaluation harness using the pass@$k$ metric. We collect gold configurations from GitHub, the Terraform Registry, and AWS sample repositories, generate thousands of training pairs via both rule-based and LLM-assisted fault injection, and establish baseline repair rates using open-weight models. Our results show that while models handle syntactic faults reasonably well, semantic and cross-resource faults remain challenging, motivating further research in IaC-specific code repair.
+\end{abstract}
+
+\input{sections/introduction}
+\input{sections/related_work}
+\input{sections/method}
+\input{sections/dataset}
+\input{sections/experiments}
+\input{sections/conclusion}
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

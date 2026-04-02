@@ -1,0 +1,13 @@
+\section{Related Work}
+\label{sec:related_work}
+
+\paragraph{IaC Analysis and Repair.}
+Prior work on IaC analysis has focused on static analysis tools~\citep{cfnlint2023}, security scanning~\citep{checkov2023}, and policy enforcement. However, automated \emph{repair} of IaC configurations using learned models remains largely unexplored. Existing tools can detect issues but require manual intervention for fixes.
+
+\paragraph{LLM-Based Code Repair.}
+The application of LLMs to automated program repair has gained significant attention. Benchmarks like SWE-bench~\citep{jimenez2024swebench} evaluate end-to-end issue resolution, while HumanEval~\citep{chen2021codex} and MBPP~\citep{austin2021program} focus on code generation. CLI-Gym~\citep{cligym2024} provides a reinforcement learning environment for command-line tasks. Cloud-Gym extends this line of work to the IaC domain.
+
+\paragraph{Fault Injection and Mutation Testing.}
+Mutation testing~\citep{jia2011mutation} systematically introduces faults to evaluate test suite adequacy. Cloud-Gym's inversion engine draws on mutation testing principles but targets IaC-specific fault patterns validated by real infrastructure tools.
+
+% TODO: Expand with additional citations once literature review is complete

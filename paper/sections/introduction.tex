@@ -1,0 +1,21 @@
+\section{Introduction}
+\label{sec:introduction}
+
+Infrastructure-as-Code (IaC) has become the standard for managing cloud resources, with tools like Terraform and CloudFormation enabling declarative specification of complex infrastructure. As IaC configurations grow in complexity, misconfigurations become a significant source of deployment failures, security vulnerabilities, and operational incidents.
+
+Recent advances in large language models (LLMs) have shown promise for automated code repair across general-purpose programming languages. However, IaC repair presents unique challenges:
+\begin{itemize}
+    \item \textbf{Domain-specific semantics}: IaC faults span syntactic errors, cross-resource dependency issues, and cloud provider-specific constraints that differ fundamentally from traditional programming bugs.
+    \item \textbf{Validation complexity}: Correctness requires interaction with cloud provider APIs and validation tools (e.g., \texttt{terraform validate}, \texttt{cfn-lint}), not just syntactic well-formedness.
+    \item \textbf{Lack of benchmarks}: No standardized benchmark exists for evaluating LLM-based IaC repair, making it difficult to compare approaches or measure progress.
+\end{itemize}
+
+We address these gaps with \textbf{Cloud-Gym}, a framework that provides:
+\begin{enumerate}
+    \item A \textbf{37-fault taxonomy} across 8 categories, covering both Terraform/HCL and CloudFormation/YAML fault types.
+    \item A \textbf{programmatic inversion engine} that generates validated broken configurations from gold (valid) instances through targeted fault injection.
+    \item A \textbf{training data pipeline} producing thousands of (broken, gold, error) triples for supervised fine-tuning.
+    \item An \textbf{evaluation harness} with pass@$k$ metrics and stratified reporting by fault category, difficulty, and IaC format.
+\end{enumerate}
+
+% TODO: Add contributions summary and paper outline
