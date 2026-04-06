@@ -27,9 +27,16 @@ dev = [
     "pytest-asyncio>=0.24",
     "ruff>=0.8",
 ]
+mlx = [
+    "mlx-lm>=0.21",
+]
+gguf = [
+    "llama-cpp-python>=0.3",
+]
 
 [project.scripts]
 cloud-gym = "cloudgym.cli:main"
+iac-fix = "cloudgym.fixer.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["cloudgym"]

@@ -42,8 +42,13 @@ ModelFn = Callable[[str, list[str]], Awaitable[str]]
 class Evaluator:
     """Evaluates model repair attempts against the benchmark."""
 
-    def __init__(self, benchmark_path: str | Path):
+    # Max concurrent validations (terraform/cfn-lint)
+    DEFAULT_CONCURRENCY = 8
+
+    def __init__(self, benchmark_path: str | Path, concurrency: int | None = None):
         self.dataset = BenchmarkDataset(benchmark_path)
+        self._tf_cache_dir: Path | None = None
+        self._concurrency = concurrency or self.DEFAULT_CONCURRENCY
 
     async def evaluate_model(
         self,
@@ -66,23 +71,38 @@ class Evaluator:
         if k_values is None:
             k_values = [1, 3]
 
-        raw_results = []
-
+        # Phase 1: Generate all repairs (serial — model inference isn't parallel-safe)
+        # Store as list of (entry, [repaired_configs])
+        all_repairs: list[tuple[BenchmarkEntry, list[str | None]]] = []
         for entry in self.dataset:
-            passes = 0
+            repairs: list[str | None] = []
             for attempt in range(n_attempts):
                 try:
                     repaired = await model_fn(entry.broken_config, entry.errors)
-                    passed = await self._check_repair(repaired, entry.format)
+                    repairs.append(repaired)
                 except Exception:
                     logger.exception(
                         "Model failed on entry %s attempt %d", entry.id, attempt
                     )
-                    passed = False
+                    repairs.append(None)
+            all_repairs.append((entry, repairs))
 
-                if passed:
-                    passes += 1
+        # Phase 2: Validate all repairs concurrently
+        sem = asyncio.Semaphore(self._concurrency)
 
+        async def _validate(repaired: str | None, fmt: str) -> bool:
+            if repaired is None:
+                return False
+            async with sem:
+                return await self._check_repair(repaired, fmt)
+
+        raw_results = []
+        for entry, repairs in all_repairs:
+            tasks = [_validate(r, entry.format) for r in repairs]
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            passes = sum(
+                1 for r in results if r is True
+            )
             raw_results.append({
                 "id": entry.id,
                 "format": entry.format,
@@ -138,26 +158,84 @@ class Evaluator:
 
         return report
 
+    async def _ensure_tf_cache(self) -> Path:
+        """Create a cached terraform init directory for fast validation."""
+        if self._tf_cache_dir and self._tf_cache_dir.exists():
+            return self._tf_cache_dir
+
+        cache = Path(tempfile.mkdtemp(prefix="cloudgym_tf_cache_"))
+        # Write a minimal .tf that requires the AWS provider
+        (cache / "providers.tf").write_text(
+            'terraform {\n  required_providers {\n'
+            '    aws = {\n      source  = "hashicorp/aws"\n'
+            '      version = "~> 5.0"\n    }\n  }\n}\n'
+        )
+        import asyncio
+        proc = await asyncio.create_subprocess_exec(
+            "terraform", "init", "-backend=false", "-no-color",
+            cwd=cache,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        await proc.communicate()
+        # Remove the providers.tf so it doesn't interfere with validation
+        (cache / "providers.tf").unlink(missing_ok=True)
+        self._tf_cache_dir = cache
+        logger.info("Cached terraform init at %s", cache)
+        return cache
+
     async def _check_repair(self, repaired: str, iac_format: str) -> bool:
         """Check if a repaired config passes validation."""
         if not repaired or not repaired.strip():
             return False
 
-        suffix = ".tf" if iac_format in ("terraform", "opentofu") else ".yaml"
-        tmpdir = Path(tempfile.mkdtemp(prefix="cloudgym_eval_"))
-        tmp_file = tmpdir / f"repaired{suffix}"
-        tmp_file.write_text(repaired)
+        if iac_format in ("terraform", "opentofu"):
+            return await self._check_terraform_repair(repaired)
+        else:
+            return await self._check_cf_repair(repaired)
 
+    async def _check_terraform_repair(self, repaired: str) -> bool:
+        """Validate terraform repair using cached init directory."""
         try:
-            if iac_format in ("terraform", "opentofu"):
-                from cloudgym.validator.terraform import validate
-            else:
-                from cloudgym.validator.cloudformation import validate
+            cache = await self._ensure_tf_cache()
+            tmpdir = Path(tempfile.mkdtemp(prefix="cloudgym_eval_"))
+            # Symlink .terraform and lock file from cache (much faster than copy)
+            tf_dir = cache / ".terraform"
+            lock_file = cache / ".terraform.lock.hcl"
+            if tf_dir.exists():
+                (tmpdir / ".terraform").symlink_to(tf_dir)
+            if lock_file.exists():
+                (tmpdir / ".terraform.lock.hcl").symlink_to(lock_file)
 
+            (tmpdir / "repaired.tf").write_text(repaired)
+
+            # Skip init, go straight to validate
+            proc = await asyncio.create_subprocess_exec(
+                "terraform", "validate", "-json", "-no-color",
+                cwd=tmpdir,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+            stdout, _ = await proc.communicate()
+            result = json.loads(stdout.decode(errors="replace"))
+            return result.get("valid", False)
+        except Exception:
+            logger.exception("Terraform validation error during eval")
+            return False
+        finally:
+            shutil.rmtree(tmpdir, ignore_errors=True)
+
+    async def _check_cf_repair(self, repaired: str) -> bool:
+        """Validate CloudFormation repair via cfn-lint."""
+        tmpdir = Path(tempfile.mkdtemp(prefix="cloudgym_eval_"))
+        tmp_file = tmpdir / "repaired.yaml"
+        tmp_file.write_text(repaired)
+        try:
+            from cloudgym.validator.cloudformation import validate
             result = await validate(tmp_file)
             return result.valid and len(result.errors) == 0
         except Exception:
-            logger.exception("Validation error during eval")
+            logger.exception("CF validation error during eval")
             return False
         finally:
             shutil.rmtree(tmpdir, ignore_errors=True)

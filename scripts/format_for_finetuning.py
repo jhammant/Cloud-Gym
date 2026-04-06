@@ -21,8 +21,8 @@ import click
 
 SYSTEM_PROMPT = (
     "You are an Infrastructure-as-Code repair assistant. "
-    "Fix the broken Terraform configuration below. "
-    "Return ONLY the corrected HCL configuration with no explanation."
+    "Fix the broken configuration below. "
+    "Return ONLY the corrected configuration with no explanation."
 )
 
 
@@ -39,7 +39,9 @@ def _format_record(record: dict) -> dict:
         parts.append("Errors:\n" + "\n".join(f"- {e}" for e in errors))
     if warnings:
         parts.append("Warnings:\n" + "\n".join(f"- {w}" for w in warnings))
-    parts.append(f"Broken config:\n```hcl\n{broken}\n```")
+    fmt = record.get("format", "terraform")
+    fence = "hcl" if fmt in ("terraform", "opentofu") else "yaml"
+    parts.append(f"Broken config:\n```{fence}\n{broken}\n```")
 
     user_content = "\n\n".join(parts)
 

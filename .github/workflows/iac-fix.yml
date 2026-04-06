@@ -1,0 +1,66 @@
+name: iac-fix
+
+on:
+  pull_request:
+    paths:
+      - '**/*.tf'
+      - '**/*.yaml'
+      - '**/*.yml'
+
+jobs:
+  iac-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install iac-fix with GGUF backend
+        run: |
+          pip install cloud-gym[gguf]
+          pip install cfn-lint
+
+      - name: Download GGUF model
+        run: |
+          mkdir -p data/models/exports
+          python -c "
+          from huggingface_hub import hf_hub_download
+          hf_hub_download(
+              repo_id='cloud-gym/iac-repair-0.5b-gguf',
+              filename='iac-repair-0.5b.gguf',
+              local_dir='data/models/exports',
+          )
+          "
+
+      - name: Check changed IaC files
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            | grep -E '\.(tf|yaml|yml)$' \
+            | xargs -r iac-fix check
+
+      - name: Suggest fixes (comment on PR)
+        if: failure()
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            | grep -E '\.(tf|yaml|yml)$' \
+            | xargs -r iac-fix repair \
+              --backend gguf \
+              --model data/models/exports/iac-repair-0.5b.gguf \
+              --no-color 2>&1 \
+            | head -200 > /tmp/fix-output.txt
+
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "$(cat <<'EOF'
+          ### iac-fix found issues
+
+          ```
+          $(cat /tmp/fix-output.txt)
+          ```
+
+          Run `iac-fix repair --apply` locally to auto-fix.
+          EOF
+          )"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
