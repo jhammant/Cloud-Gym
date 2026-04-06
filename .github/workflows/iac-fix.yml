@@ -28,8 +28,8 @@ jobs:
           python -c "
           from huggingface_hub import hf_hub_download
           hf_hub_download(
-              repo_id='cloud-gym/iac-repair-0.5b-gguf',
-              filename='iac-repair-0.5b.gguf',
+              repo_id='Tetsuto/iac-repair-3b-gguf',
+              filename='iac-repair-3b-q4.gguf',
               local_dir='data/models/exports',
           )
           "
@@ -47,7 +47,7 @@ jobs:
             | grep -E '\.(tf|yaml|yml)$' \
             | xargs -r iac-fix repair \
               --backend gguf \
-              --model data/models/exports/iac-repair-0.5b.gguf \
+              --model data/models/exports/iac-repair-3b-q4.gguf \
               --no-color 2>&1 \
             | head -200 > /tmp/fix-output.txt
 
