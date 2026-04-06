@@ -24,6 +24,7 @@ from cloudgym.fixer.detector import IaCFormat, detect_format, validate_file_sync
 from cloudgym.fixer.formatter import colorized_diff, unified_diff, write_repair
 
 console = Console()
+stderr_console = Console(stderr=True)
 
 # Lazy-loaded repairer (avoids model load until needed)
 _repairer = None
@@ -258,15 +259,14 @@ def _repair_stdin(
         sys.stdout.write(original)
         return
 
-    console.print(f"[yellow]Fixing stdin[/yellow] ({detected_fmt.value}) — {len(result.errors)} error(s)",
-                  file=sys.stderr)
+    stderr_console.print(f"[yellow]Fixing stdin[/yellow] ({detected_fmt.value}) — {len(result.errors)} error(s)")
 
     repairer = _get_repairer(backend, model, adapter)
     repaired = repairer.repair(original, result.errors)
 
     if output:
         write_repair(Path(output), repaired)
-        console.print(f"[green]Written to {output}[/green]", file=sys.stderr)
+        stderr_console.print(f"[green]Written to {output}[/green]")
     else:
         sys.stdout.write(repaired)
 
