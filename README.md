@@ -11,7 +11,7 @@ The `stackfix` CLI tool validates and repairs broken IaC files using fine-tuned 
 ### Install
 
 ```bash
-pip install cloud-gym[gguf]
+pip install stackfix
 ```
 
 ### Download a Model
@@ -60,9 +60,9 @@ All models are fine-tuned Qwen2.5-Coder with LoRA, exported to GGUF. They run on
 
 | Backend | Install | Platform | Use Case |
 |---|---|---|---|
-| `gguf` | `pip install cloud-gym[gguf]` | Any (CPU) | CI/CD, Lambda, servers |
-| `mlx` | `pip install cloud-gym[mlx]` | Apple Silicon | Local dev on Mac |
-| `ollama` | `pip install cloud-gym` + Ollama | Any | When Ollama is already running |
+| `gguf` | `pip install stackfix` | Any (CPU) | Default — CI/CD, Lambda, servers |
+| `mlx` | `pip install stackfix[mlx]` | Apple Silicon | Local dev on Mac |
+| `ollama` | `pip install stackfix[ollama]` + Ollama | Any | When Ollama is already running |
 
 ### CI/CD Integration
 
@@ -71,7 +71,7 @@ Add to your GitHub Actions workflow to catch IaC errors on every PR:
 ```yaml
 - name: Check IaC
   run: |
-    pip install cloud-gym[gguf]
+    pip install stackfix
     python -c "
     from huggingface_hub import hf_hub_download
     hf_hub_download('Tetsuto/iac-repair-3b-gguf', 'iac-repair-3b-q4.gguf', local_dir='.')
@@ -93,7 +93,7 @@ repos:
         entry: stackfix pre-commit --backend gguf --model iac-repair-3b-q4.gguf
         language: python
         types_or: [terraform, yaml]
-        additional_dependencies: ['cloud-gym[gguf]']
+        additional_dependencies: ['stackfix[gguf]']
 ```
 
 ## Benchmark

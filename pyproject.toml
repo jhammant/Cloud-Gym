@@ -3,9 +3,9 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "cloud-gym"
-version = "0.1.0"
-description = "Scalable Training Data Generation for Infrastructure-as-Code Repair via Environment Inversion"
+name = "stackfix"
+version = "0.1.1"
+description = "AI-powered Infrastructure-as-Code repair — fix broken Terraform and CloudFormation on CPU"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -17,8 +17,8 @@ dependencies = [
     "python-hcl2>=5.0",
     "cfn-lint>=1.0",
     "rich>=13.0",
-    "datasets>=3.0",
-    "ollama>=0.4",
+    "llama-cpp-python>=0.3",
+    "huggingface-hub>=0.20",
 ]
 
 [project.optional-dependencies]
@@ -30,8 +30,12 @@ dev = [
 mlx = [
     "mlx-lm>=0.21",
 ]
-gguf = [
-    "llama-cpp-python>=0.3",
+training = [
+    "datasets>=3.0",
+    "ollama>=0.4",
+]
+ollama = [
+    "ollama>=0.4",
 ]
 
 [project.scripts]

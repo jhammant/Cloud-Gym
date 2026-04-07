@@ -7,7 +7,7 @@ repos:
         name: stackfix (AI-powered IaC repair)
         entry: stackfix pre-commit
         language: python
-        additional_dependencies: ['cloud-gym[mlx]']
+        additional_dependencies: ['stackfix']
         types_or: [terraform, yaml]
         # Only run on IaC-related files
         files: '\.(tf|yaml|yml)$'

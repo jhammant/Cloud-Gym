@@ -19,7 +19,7 @@ jobs:
 
       - name: Install stackfix with GGUF backend
         run: |
-          pip install cloud-gym[gguf]
+          pip install stackfix
           pip install cfn-lint
 
       - name: Download GGUF model

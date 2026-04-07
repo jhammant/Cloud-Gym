@@ -63,7 +63,7 @@ def _get_repairer(backend: str, model: str | None, adapter: str | None):
 
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="stackfix")
+@click.version_option(version="0.1.1", prog_name="stackfix")
 def cli():
     """AI-powered Infrastructure-as-Code repair.
 

@@ -46,7 +46,7 @@ cat broken.tf | stackfix repair - --backend gguf --model model.gguf > fixed.tf
 - **Pre-commit hook**: Catches errors before they're committed. Fully offline.
 - **GitHub Actions**: Free CI gate — block PRs with broken IaC configs.
 - **AWS Lambda**: ~$0.0001 per invocation with the 0.5B model.
-- **Local dev**: Just `pip install cloud-gym[gguf]` and go.
+- **Local dev**: Just `pip install stackfix` and go.
 
 The whole pipeline is open source: data generation, training, evaluation benchmark, CLI tool, and model weights.
 
@@ -69,7 +69,7 @@ Results: 7B → 92.6% pass@1. 3B → 86.7%. 0.5B → 72.3%. Gemma-4-26B without 
 
 The 3B model is 1.8 GB, loads in 0.6s, and runs in GitHub Actions for free. No API keys, no cloud costs.
 
-`pip install cloud-gym[gguf]` — open source, MIT licensed.
+`pip install stackfix` — open source, MIT licensed.
 
 github.com/jhammant/Cloud-Gym
 

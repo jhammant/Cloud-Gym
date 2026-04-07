@@ -7,7 +7,7 @@ Runs on CPU anywhere — no GPU required, no API keys, no cloud costs.
 
 ```bash
 # Install
-pip install cloud-gym[gguf]
+pip install stackfix
 
 # Download the model (1.8 GB, one-time)
 python -c "
@@ -41,7 +41,7 @@ jobs:
         with: { python-version: '3.12' }
 
       - name: Install
-        run: pip install cloud-gym[gguf]
+        run: pip install stackfix
 
       - name: Download model
         run: |
@@ -75,7 +75,7 @@ repos:
         entry: stackfix pre-commit --backend gguf --model ./iac-repair-3b-q4.gguf
         language: python
         types_or: [terraform, yaml]
-        additional_dependencies: ['cloud-gym[gguf]']
+        additional_dependencies: ['stackfix[gguf]']
 ```
 
 **How it works:**
