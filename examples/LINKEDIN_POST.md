@@ -28,18 +28,22 @@ That's right — our 0.5B model (500M parameters) outperforms an unfine-tuned 26
 **What you can do with it today:**
 
 ```
-# Validate
-stackfix check *.tf *.yaml
+pip install stackfix
 
 # Fix (shows diff, verifies the fix passes validation)
-stackfix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf
+stackfix repair main.tf
+
+# Validate files
+stackfix check *.tf *.yaml
 
 # Explain errors in plain language
-stackfix discuss main.tf --backend gguf --model iac-repair-3b-q4.gguf
+stackfix discuss main.tf
 
 # Pipe mode for CI
-cat broken.tf | stackfix repair - --backend gguf --model model.gguf > fixed.tf
+cat broken.tf | stackfix repair - > fixed.tf
 ```
+
+Model auto-downloads on first run (1.8 GB, cached). No config needed.
 
 **Practical deployment options:**
 
