@@ -50,3 +50,5 @@ htmlcov/
 *.tfstate.backup
 .terraform.lock.hcl
 data/distill/
+examples/chart_*.png
+examples/LINKEDIN_POST.md
