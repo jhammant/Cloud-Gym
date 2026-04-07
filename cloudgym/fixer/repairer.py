@@ -158,6 +158,7 @@ class GGUFRepairer:
             n_gpu_layers=self.n_gpu_layers,
             n_ctx=self.n_ctx,
             verbose=False,
+            chat_format="chatml",
         )
         logger.info("GGUF model loaded.")
 

@@ -36,6 +36,11 @@ PRESETS = {
         "adapter_path": "data/models/iac-repair-adapter",
         "output_name": "iac-repair-3b-rank8.gguf",
     },
+    "7b": {
+        "base_model": "mlx-community/Qwen2.5-Coder-7B-Instruct-4bit",
+        "adapter_path": "data/models/iac-repair-7b-adapter-v2",
+        "output_name": "iac-repair-7b.gguf",
+    },
 }
 
 
