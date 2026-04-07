@@ -144,7 +144,7 @@ def main(
         size_mb = gguf_path.stat().st_size / (1024 * 1024)
         console.print(f"\n[bold green]Done![/bold green] {gguf_path} ({size_mb:.1f} MB)")
         console.print(f"\nTest with:")
-        console.print(f"  iac-fix repair examples/broken_security_group.tf --backend gguf --model {gguf_path}")
+        console.print(f"  stackfix repair examples/broken_security_group.tf --backend gguf --model {gguf_path}")
     else:
         console.print("[red]GGUF file not found after conversion![/red]")
         sys.exit(1)

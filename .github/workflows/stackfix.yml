@@ -1,4 +1,4 @@
-name: iac-fix
+name: stackfix
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
       - '**/*.yml'
 
 jobs:
-  iac-fix:
+  stackfix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install iac-fix with GGUF backend
+      - name: Install stackfix with GGUF backend
         run: |
           pip install cloud-gym[gguf]
           pip install cfn-lint
@@ -38,14 +38,14 @@ jobs:
         run: |
           git diff --name-only origin/${{ github.base_ref }}...HEAD \
             | grep -E '\.(tf|yaml|yml)$' \
-            | xargs -r iac-fix check
+            | xargs -r stackfix check
 
       - name: Suggest fixes (comment on PR)
         if: failure()
         run: |
           git diff --name-only origin/${{ github.base_ref }}...HEAD \
             | grep -E '\.(tf|yaml|yml)$' \
-            | xargs -r iac-fix repair \
+            | xargs -r stackfix repair \
               --backend gguf \
               --model data/models/exports/iac-repair-3b-q4.gguf \
               --no-color 2>&1 \
@@ -53,13 +53,13 @@ jobs:
 
           gh pr comment ${{ github.event.pull_request.number }} \
             --body "$(cat <<'EOF'
-          ### iac-fix found issues
+          ### stackfix found issues
 
           ```
           $(cat /tmp/fix-output.txt)
           ```
 
-          Run `iac-fix repair --apply` locally to auto-fix.
+          Run `stackfix repair --apply` locally to auto-fix.
           EOF
           )"
         env:

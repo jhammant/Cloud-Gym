@@ -4,9 +4,9 @@ Scalable Training Data Generation for Infrastructure-as-Code Repair via Environm
 
 Cloud-Gym generates (broken_config, error_message, fix) training pairs for IaC repair by applying **environment inversion** — taking working Terraform, CloudFormation, and OpenTofu configs and systematically breaking them using a defined fault taxonomy. It includes a benchmark (188 entries across 8 error categories) and fine-tuned models that run entirely on CPU.
 
-## iac-fix: AI-Powered IaC Repair
+## stackfix: AI-Powered IaC Repair
 
-The `iac-fix` CLI tool validates and repairs broken IaC files using fine-tuned local models. No API keys, no cloud costs, no data leaves your machine.
+The `stackfix` CLI tool validates and repairs broken IaC files using fine-tuned local models. No API keys, no cloud costs, no data leaves your machine.
 
 ### Install
 
@@ -28,22 +28,22 @@ hf_hub_download('Tetsuto/iac-repair-3b-gguf', 'iac-repair-3b-q4.gguf', local_dir
 
 ```bash
 # Check files for errors
-iac-fix check main.tf template.yaml
+stackfix check main.tf template.yaml
 
 # Repair a broken file (show diff)
-iac-fix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf
+stackfix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf
 
 # Repair and apply fix in place
-iac-fix repair main.tf --apply --backend gguf --model iac-repair-3b-q4.gguf
+stackfix repair main.tf --apply --backend gguf --model iac-repair-3b-q4.gguf
 
 # Explain errors in plain language
-iac-fix discuss main.tf --backend gguf --model iac-repair-3b-q4.gguf
+stackfix discuss main.tf --backend gguf --model iac-repair-3b-q4.gguf
 
 # Pipe mode (stdin/stdout)
-cat broken.tf | iac-fix repair - --backend gguf --model iac-repair-3b-q4.gguf > fixed.tf
+cat broken.tf | stackfix repair - --backend gguf --model iac-repair-3b-q4.gguf > fixed.tf
 
 # Check all changed IaC files in git
-iac-fix git-diff --backend gguf --model iac-repair-3b-q4.gguf
+stackfix git-diff --backend gguf --model iac-repair-3b-q4.gguf
 ```
 
 ### Models
@@ -76,7 +76,7 @@ Add to your GitHub Actions workflow to catch IaC errors on every PR:
     from huggingface_hub import hf_hub_download
     hf_hub_download('Tetsuto/iac-repair-3b-gguf', 'iac-repair-3b-q4.gguf', local_dir='.')
     "
-    iac-fix check **/*.tf **/*.yaml
+    stackfix check **/*.tf **/*.yaml
 ```
 
 See [examples/USE_CASES.md](examples/USE_CASES.md) for more deployment scenarios (pre-commit hooks, Lambda, pipeline integration).
@@ -88,9 +88,9 @@ See [examples/USE_CASES.md](examples/USE_CASES.md) for more deployment scenarios
 repos:
   - repo: local
     hooks:
-      - id: iac-fix
-        name: iac-fix
-        entry: iac-fix pre-commit --backend gguf --model iac-repair-3b-q4.gguf
+      - id: stackfix
+        name: stackfix
+        entry: stackfix pre-commit --backend gguf --model iac-repair-3b-q4.gguf
         language: python
         types_or: [terraform, yaml]
         additional_dependencies: ['cloud-gym[gguf]']
@@ -140,7 +140,7 @@ cloudgym/
   inverter/     Fault injection engines
   generator/    Training data pipeline
   benchmark/    Evaluation harness
-  fixer/        iac-fix CLI tool + model backends
+  fixer/        stackfix CLI tool + model backends
 scripts/        Training, evaluation, and export scripts
 examples/       Broken IaC examples + use case docs
 ```

@@ -36,7 +36,7 @@ gguf = [
 
 [project.scripts]
 cloud-gym = "cloudgym.cli:main"
-iac-fix = "cloudgym.fixer.cli:main"
+stackfix = "cloudgym.fixer.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["cloudgym"]

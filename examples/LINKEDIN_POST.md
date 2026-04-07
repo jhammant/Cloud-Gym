@@ -6,7 +6,7 @@
 
 We've all been there. A CloudFormation deploy fails at 2am because of a typo. Terraform plan catches a reference error after you've already context-switched. CI goes red because someone fat-fingered a resource name.
 
-So I built **iac-fix** — an open-source CLI that validates IaC files, explains what's wrong in plain English, and generates verified fixes. The key difference: it runs a fine-tuned model locally on your laptop's CPU. No API keys. No cloud costs. No data leaving your machine.
+So I built **stackfix** — an open-source CLI that validates IaC files, explains what's wrong in plain English, and generates verified fixes. The key difference: it runs a fine-tuned model locally on your laptop's CPU. No API keys. No cloud costs. No data leaving your machine.
 
 **How it works, end to end:**
 
@@ -29,16 +29,16 @@ That's right — our 0.5B model (500M parameters) outperforms an unfine-tuned 26
 
 ```
 # Validate
-iac-fix check *.tf *.yaml
+stackfix check *.tf *.yaml
 
 # Fix (shows diff, verifies the fix passes validation)
-iac-fix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf
+stackfix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf
 
 # Explain errors in plain language
-iac-fix discuss main.tf --backend gguf --model iac-repair-3b-q4.gguf
+stackfix discuss main.tf --backend gguf --model iac-repair-3b-q4.gguf
 
 # Pipe mode for CI
-cat broken.tf | iac-fix repair - --backend gguf --model model.gguf > fixed.tf
+cat broken.tf | stackfix repair - --backend gguf --model model.gguf > fixed.tf
 ```
 
 **Practical deployment options:**

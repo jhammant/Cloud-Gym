@@ -1,11 +1,11 @@
-# Example pre-commit config for iac-fix
+# Example pre-commit config for stackfix
 # Copy this to your repo root as .pre-commit-config.yaml
 repos:
   - repo: local
     hooks:
-      - id: iac-fix
-        name: iac-fix (AI-powered IaC repair)
-        entry: iac-fix pre-commit
+      - id: stackfix
+        name: stackfix (AI-powered IaC repair)
+        entry: stackfix pre-commit
         language: python
         additional_dependencies: ['cloud-gym[mlx]']
         types_or: [terraform, yaml]

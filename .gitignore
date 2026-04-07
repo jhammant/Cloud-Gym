@@ -49,3 +49,4 @@ htmlcov/
 *.tfstate
 *.tfstate.backup
 .terraform.lock.hcl
+data/distill/

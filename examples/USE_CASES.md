@@ -1,4 +1,4 @@
-# iac-fix Use Cases
+# stackfix Use Cases
 
 AI-powered Infrastructure-as-Code repair using a fine-tuned local model.
 Runs on CPU anywhere — no GPU required, no API keys, no cloud costs.
@@ -16,7 +16,7 @@ hf_hub_download('Tetsuto/iac-repair-3b-gguf', 'iac-repair-3b-q4.gguf', local_dir
 "
 
 # Fix a broken Terraform file
-iac-fix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf
+stackfix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf
 ```
 
 ---
@@ -26,14 +26,14 @@ iac-fix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf
 **Scenario:** Validate IaC files on every pull request. Block merges with broken configs, auto-suggest fixes in PR comments.
 
 ```yaml
-# .github/workflows/iac-fix.yml
-name: iac-fix
+# .github/workflows/stackfix.yml
+name: stackfix
 on:
   pull_request:
     paths: ['**/*.tf', '**/*.yaml', '**/*.yml']
 
 jobs:
-  iac-fix:
+  stackfix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
         run: |
           git diff --name-only origin/${{ github.base_ref }}...HEAD \
             | grep -E '\.(tf|yaml|yml)$' \
-            | xargs -r iac-fix check
+            | xargs -r stackfix check
 ```
 
 **Cost:** Free (GitHub Actions free tier). Model downloads once per run (~30s).
@@ -70,9 +70,9 @@ jobs:
 repos:
   - repo: local
     hooks:
-      - id: iac-fix
-        name: iac-fix
-        entry: iac-fix pre-commit --backend gguf --model ./iac-repair-3b-q4.gguf
+      - id: stackfix
+        name: stackfix
+        entry: stackfix pre-commit --backend gguf --model ./iac-repair-3b-q4.gguf
         language: python
         types_or: [terraform, yaml]
         additional_dependencies: ['cloud-gym[gguf]']
@@ -80,7 +80,7 @@ repos:
 
 **How it works:**
 1. Developer commits `main.tf` with a typo
-2. Pre-commit runs `iac-fix`, detects the error
+2. Pre-commit runs `stackfix`, detects the error
 3. Model generates the fix and writes it in place
 4. Developer re-stages and commits the corrected file
 
@@ -88,11 +88,11 @@ repos:
 
 ## Use Case 3: Incident Response — Explain What Went Wrong
 
-**Scenario:** A CloudFormation deployment failed. Use `iac-fix discuss` to get a plain-language explanation of what's wrong, why it matters, and how to fix it.
+**Scenario:** A CloudFormation deployment failed. Use `stackfix discuss` to get a plain-language explanation of what's wrong, why it matters, and how to fix it.
 
 ```bash
 # Get a detailed explanation of errors
-iac-fix discuss failed-template.yaml --backend gguf --model iac-repair-3b-q4.gguf
+stackfix discuss failed-template.yaml --backend gguf --model iac-repair-3b-q4.gguf
 ```
 
 **Output:**
@@ -124,15 +124,15 @@ failed-template.yaml (cloudformation)
 **Scenario:** Integrate into any build pipeline using Unix pipes. Feed broken config in, get fixed config out.
 
 ```bash
-# Fix inline — pipe broken config through iac-fix
-cat broken.tf | iac-fix repair - --backend gguf --model iac-repair-3b-q4.gguf > fixed.tf
+# Fix inline — pipe broken config through stackfix
+cat broken.tf | stackfix repair - --backend gguf --model iac-repair-3b-q4.gguf > fixed.tf
 
 # Use in a script
 terraform validate main.tf 2>&1 || \
-  iac-fix repair main.tf --apply --backend gguf --model iac-repair-3b-q4.gguf
+  stackfix repair main.tf --apply --backend gguf --model iac-repair-3b-q4.gguf
 
 # Chain with other tools
-iac-fix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf -o /dev/stdout \
+stackfix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf -o /dev/stdout \
   | terraform fmt -
 ```
 
@@ -144,10 +144,10 @@ iac-fix repair main.tf --backend gguf --model iac-repair-3b-q4.gguf -o /dev/stdo
 
 ```bash
 # Check changed files
-iac-fix git-diff --backend gguf --model iac-repair-3b-q4.gguf
+stackfix git-diff --backend gguf --model iac-repair-3b-q4.gguf
 
 # Auto-fix and stage
-iac-fix git-diff --apply --backend gguf --model iac-repair-3b-q4.gguf
+stackfix git-diff --apply --backend gguf --model iac-repair-3b-q4.gguf
 ```
 
 ---
@@ -164,7 +164,7 @@ iac-fix git-diff --apply --backend gguf --model iac-repair-3b-q4.gguf
 import boto3, json
 lambda_client = boto3.client('lambda')
 response = lambda_client.invoke(
-    FunctionName='iac-fix',
+    FunctionName='stackfix',
     Payload=json.dumps({
         "config": open("broken.tf").read(),
         "errors": ["Reference to undeclared resource"],

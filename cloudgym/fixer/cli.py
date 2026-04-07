@@ -1,12 +1,12 @@
-"""iac-fix CLI: AI-powered Infrastructure-as-Code repair tool.
+"""stackfix CLI: AI-powered Infrastructure-as-Code repair tool.
 
 Usage:
-    iac-fix check main.tf              # validate and show errors
-    iac-fix repair main.tf             # validate, fix, show diff
-    iac-fix repair main.tf --apply     # validate, fix, write in place
-    iac-fix repair main.tf --apply -o fixed.tf  # write to different file
-    iac-fix repair *.tf                # fix multiple files
-    cat broken.tf | iac-fix repair -   # stdin/stdout mode
+    stackfix check main.tf              # validate and show errors
+    stackfix repair main.tf             # validate, fix, show diff
+    stackfix repair main.tf --apply     # validate, fix, write in place
+    stackfix repair main.tf --apply -o fixed.tf  # write to different file
+    stackfix repair *.tf                # fix multiple files
+    cat broken.tf | stackfix repair -   # stdin/stdout mode
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ def _get_repairer(backend: str, model: str | None, adapter: str | None):
 
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="iac-fix")
+@click.version_option(version="0.1.0", prog_name="stackfix")
 def cli():
     """AI-powered Infrastructure-as-Code repair.
 
@@ -80,9 +80,9 @@ def check(files: tuple[str, ...], fmt: str | None):
     """Validate IaC files and report errors.
 
     Examples:
-        iac-fix check main.tf
-        iac-fix check *.yaml
-        iac-fix check --format cloudformation template.yaml
+        stackfix check main.tf
+        stackfix check *.yaml
+        stackfix check --format cloudformation template.yaml
     """
     iac_fmt = IaCFormat(fmt) if fmt else None
     any_errors = False
@@ -139,11 +139,11 @@ def repair(
     By default shows a diff of proposed changes. Use --apply to write fixes.
 
     Examples:
-        iac-fix repair main.tf                    # show diff
-        iac-fix repair main.tf --apply            # fix in place
-        iac-fix repair main.tf -o fixed.tf        # write to new file
-        iac-fix repair --backend ollama main.tf   # use Ollama
-        cat broken.tf | iac-fix repair -          # stdin/stdout
+        stackfix repair main.tf                    # show diff
+        stackfix repair main.tf --apply            # fix in place
+        stackfix repair main.tf -o fixed.tf        # write to new file
+        stackfix repair --backend ollama main.tf   # use Ollama
+        cat broken.tf | stackfix repair -          # stdin/stdout
     """
     iac_fmt = IaCFormat(fmt) if fmt else None
     stdin_mode = len(files) == 1 and files[0] == "-"
@@ -317,9 +317,9 @@ def pre_commit(files: tuple[str, ...], backend: str, model: str | None, adapter:
     Usage in .pre-commit-config.yaml:
         - repo: local
           hooks:
-            - id: iac-fix
-              name: iac-fix
-              entry: iac-fix pre-commit
+            - id: stackfix
+              name: stackfix
+              entry: stackfix pre-commit
               language: python
               types_or: [terraform, yaml]
     """
@@ -343,7 +343,7 @@ def pre_commit(files: tuple[str, ...], backend: str, model: str | None, adapter:
         if result.valid:
             continue
 
-        console.print(f"[yellow]iac-fix:[/yellow] {path} has {len(result.errors)} error(s), attempting fix...")
+        console.print(f"[yellow]stackfix:[/yellow] {path} has {len(result.errors)} error(s), attempting fix...")
 
         repairer = _get_repairer(backend, model, adapter)
         original = path.read_text()
@@ -365,7 +365,7 @@ def pre_commit(files: tuple[str, ...], backend: str, model: str | None, adapter:
             any_failed = True
 
     if any_fixed:
-        console.print("[yellow]iac-fix: Files were modified. Please re-stage and commit.[/yellow]")
+        console.print("[yellow]stackfix: Files were modified. Please re-stage and commit.[/yellow]")
         sys.exit(1)  # Signal to pre-commit that files changed
 
     sys.exit(1 if any_failed else 0)
@@ -385,8 +385,8 @@ def discuss(files: tuple[str, ...], fmt: str | None, backend: str, model: str | 
     why it matters, and how to fix it. Great for learning and code review.
 
     Examples:
-        iac-fix discuss main.tf
-        iac-fix discuss --backend ollama template.yaml
+        stackfix discuss main.tf
+        stackfix discuss --backend ollama template.yaml
     """
     iac_fmt = IaCFormat(fmt) if fmt else None
 
@@ -422,8 +422,8 @@ def git_diff(backend: str, model: str | None, adapter: str | None, apply: bool):
     and offers AI-powered fixes. Ideal for CI or local git workflows.
 
     Examples:
-        iac-fix git-diff                 # check changed IaC files
-        iac-fix git-diff --apply         # fix and re-stage
+        stackfix git-diff                 # check changed IaC files
+        stackfix git-diff --apply         # fix and re-stage
     """
     import subprocess
 
