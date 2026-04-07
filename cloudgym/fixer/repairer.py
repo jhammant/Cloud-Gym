@@ -186,6 +186,19 @@ class GGUFRepairer:
         """Explain errors and suggest fixes in natural language."""
         return self._chat(DISCUSS_SYSTEM_PROMPT, _build_discuss_prompt(config, errors))
 
+    def unload(self):
+        """Explicitly release model memory."""
+        if self._llm is not None:
+            del self._llm
+            self._llm = None
+            logger.info("GGUF model unloaded.")
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        self.unload()
+
 
 class OllamaRepairer:
     """Repair IaC configs using an Ollama-served model."""
