@@ -30,6 +30,27 @@ stderr_console = Console(stderr=True)
 _repairer = None
 
 
+DEFAULT_GGUF_REPO = "Tetsuto/iac-repair-3b-gguf"
+DEFAULT_GGUF_FILE = "iac-repair-3b-q4.gguf"
+
+
+def _resolve_gguf_model(model: str | None) -> str:
+    """Resolve the GGUF model path, auto-downloading if needed."""
+    if model and Path(model).exists():
+        return model
+
+    # Auto-download the default model from HuggingFace
+    from huggingface_hub import hf_hub_download
+
+    repo = DEFAULT_GGUF_REPO
+    filename = DEFAULT_GGUF_FILE
+
+    console.print(f"[dim]Downloading model {filename} from {repo}...[/dim]")
+    path = hf_hub_download(repo_id=repo, filename=filename)
+    console.print(f"[dim]Model cached at {path}[/dim]")
+    return path
+
+
 def _get_repairer(backend: str, model: str | None, adapter: str | None):
     """Get or create the repairer instance."""
     global _repairer
@@ -46,12 +67,8 @@ def _get_repairer(backend: str, model: str | None, adapter: str | None):
     elif backend == "gguf":
         from cloudgym.fixer.repairer import GGUFRepairer
 
-        if not model:
-            raise click.ClickException(
-                "GGUF backend requires --model pointing to a .gguf file. "
-                "Export one with: python scripts/export_gguf.py 0.5b"
-            )
-        _repairer = GGUFRepairer(model_path=model)
+        model_path = _resolve_gguf_model(model)
+        _repairer = GGUFRepairer(model_path=model_path)
     elif backend == "ollama":
         from cloudgym.fixer.repairer import OllamaRepairer
 
@@ -63,7 +80,7 @@ def _get_repairer(backend: str, model: str | None, adapter: str | None):
 
 
 @click.group()
-@click.version_option(version="0.1.1", prog_name="stackfix")
+@click.version_option(version="0.1.2", prog_name="stackfix")
 def cli():
     """AI-powered Infrastructure-as-Code repair.
 
@@ -115,7 +132,7 @@ def check(files: tuple[str, ...], fmt: str | None):
 @click.option("-o", "--output", type=click.Path(), help="Write fixed output to this file")
 @click.option("--format", "fmt", type=click.Choice(["terraform", "cloudformation", "opentofu"]),
               default=None, help="Override auto-detected format")
-@click.option("--backend", type=click.Choice(["mlx", "gguf", "ollama"]), default="mlx",
+@click.option("--backend", type=click.Choice(["mlx", "gguf", "ollama"]), default="gguf",
               help="Model backend (default: mlx)")
 @click.option("--model", default=None, help="Override base model")
 @click.option("--adapter", default=None, help="Override adapter path")
@@ -305,7 +322,7 @@ def _show_diff(original: str, repaired: str, filename: str, color: bool):
 
 @cli.command(name="pre-commit")
 @click.argument("files", nargs=-1, type=click.Path(exists=True))
-@click.option("--backend", type=click.Choice(["mlx", "gguf", "ollama"]), default="mlx")
+@click.option("--backend", type=click.Choice(["mlx", "gguf", "ollama"]), default="gguf")
 @click.option("--model", default=None)
 @click.option("--adapter", default=None)
 def pre_commit(files: tuple[str, ...], backend: str, model: str | None, adapter: str | None):
@@ -375,7 +392,7 @@ def pre_commit(files: tuple[str, ...], backend: str, model: str | None, adapter:
 @click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
 @click.option("--format", "fmt", type=click.Choice(["terraform", "cloudformation", "opentofu"]),
               default=None, help="Override auto-detected format")
-@click.option("--backend", type=click.Choice(["mlx", "gguf", "ollama"]), default="mlx")
+@click.option("--backend", type=click.Choice(["mlx", "gguf", "ollama"]), default="gguf")
 @click.option("--model", default=None)
 @click.option("--adapter", default=None)
 def discuss(files: tuple[str, ...], fmt: str | None, backend: str, model: str | None, adapter: str | None):
@@ -411,7 +428,7 @@ def discuss(files: tuple[str, ...], fmt: str | None, backend: str, model: str | 
 
 
 @cli.command(name="git-diff")
-@click.option("--backend", type=click.Choice(["mlx", "gguf", "ollama"]), default="mlx")
+@click.option("--backend", type=click.Choice(["mlx", "gguf", "ollama"]), default="gguf")
 @click.option("--model", default=None)
 @click.option("--adapter", default=None)
 @click.option("--apply", is_flag=True, help="Auto-fix and stage repaired files")
