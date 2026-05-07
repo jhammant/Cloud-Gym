@@ -61,3 +61,7 @@ data/orbital/config/
 data/orbital/prometheus_data/
 cloudgym/taxi/_validator_jvm/target/
 data/taxi/p1_gate_report.json
+data/taxi/reverse_progress*.json
+data/taxi/reverse_pairs_probe.jsonl
+data/taxi/forward_progress*.json
+data/taxi/forward_pairs_probe.jsonl
