@@ -68,19 +68,41 @@ Given a domain and a construct bucket, emit ONE JSON object with two keys:
   "description": a plain-English request a developer might write
   "taxi":        the corresponding Taxi code that satisfies the request
 
-Taxi syntax reminders:
+Taxi syntax reminders (these are STRICT — the compiler rejects deviations):
 - `type X inherits Y` for primitive aliases (Y ∈ String, Int, Decimal, Boolean, Instant, Date)
+  ✓ `type CustomerId inherits String`
+  ✗ `type CustomerId = string`        (TypeScript syntax — invalid Taxi)
+  ✗ `type CustomerId : String`        (no colon)
 - `model X { field : Type }` for record-shaped data
-- `enum X { A, B, C }` for closed sets
-- `service X { operation foo(arg : T) : R }` for RPC services
-- `annotation X` or `annotation X { field : T }` then `@X` to apply
-- `find { Foo[] }` for TaxiQL queries
-- `T?` nullable, `T[]` array
+  ✓ `model Customer { id : CustomerId }`
+  ✗ `Customer {}`                     (model keyword required)
+- `enum X { A, B, C }` — closed sets, NEVER inherit
+  ✓ `enum Status { ACTIVE, INACTIVE }`
+- `service X { operation foo(arg : T) : R }`
+  ✓ `service C { operation get(id: CustomerId): Customer }`
+- `annotation X` or `annotation X { field : T }`, applied via `@X` or `@X(field=...)`
+- `T?` nullable on the TYPE side (`field : String?`), NEVER on the field name (`field?: T` is wrong)
+- `T[]` for arrays
+- `find { Foo[] }` for TaxiQL queries; `find { Foo } as { name : T }` for projections
 
-Style:
-- Use named alias types (`type CustomerId inherits String`) over raw primitives
-- Field declarations: `name : Type` — no `=`, no TS-style optional `?` on the field name
-- Output JSON only, no prose or markdown."""
+Three reference examples — match this style and structure:
+
+Example 1 (model_simple):
+```json
+{"description": "Define a Customer model with an id (CustomerId, a string-derived type) and an email (EmailAddress).", "taxi": "type CustomerId inherits String\\ntype EmailAddress inherits String\\nmodel Customer {\\n  id : CustomerId\\n  email : EmailAddress\\n}"}
+```
+
+Example 2 (service_basic):
+```json
+{"description": "Create an OrderService with an operation findOrderById that takes an OrderId string and returns a String.", "taxi": "type OrderId inherits String\\nservice OrderService {\\n  operation findOrderById(id : OrderId) : String\\n}"}
+```
+
+Example 3 (enum + model):
+```json
+{"description": "Define an OrderStatus enum (PENDING, PAID, SHIPPED) and an Order model with an id and a status.", "taxi": "type OrderId inherits String\\nenum OrderStatus { PENDING, PAID, SHIPPED }\\nmodel Order {\\n  id : OrderId\\n  status : OrderStatus\\n}"}
+```
+
+Output JSON only, no prose or markdown fences."""
 
 
 REVERSE_USER_TPL = "Taxi:\n```taxi\n{taxi}\n```\n\nProduce 3 descriptions in TERSE / TASK / DOC styles, separated by --- lines."
