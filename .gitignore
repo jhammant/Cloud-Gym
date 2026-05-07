@@ -52,3 +52,12 @@ htmlcov/
 data/distill/
 examples/chart_*.png
 examples/LINKEDIN_POST.md
+examples/LINKEDIN_POST.txt
+
+# Cloud-Gym Taxi pipeline
+data/upstream/
+data/orbital/workspace/
+data/orbital/config/
+data/orbital/prometheus_data/
+cloudgym/taxi/_validator_jvm/target/
+data/taxi/p1_gate_report.json
