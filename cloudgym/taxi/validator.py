@@ -165,6 +165,31 @@ class TaxiValidator:
             errors=[CompilationError(**e) for e in payload["errors"]],
         )
 
+    def validate_multi(self, sources: list[tuple[str, str]]) -> ValidationResult:
+        """Compile multiple .taxi sources together as one package. Each entry is
+        (source_name, content). Use this for sibling files that reference each
+        other across files, or for benchmark prompts that include an in-context
+        schema fragment + a target snippet."""
+        if self._proc is None:
+            self.start()
+        body = json.dumps({
+            "sources": [{"name": n, "content": c} for n, c in sources],
+        }).encode("utf-8")
+        req = _urlreq.Request(
+            f"{self._url}/validate-multi",
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with _urlreq.urlopen(req, timeout=60) as r:
+            payload = json.loads(r.read())
+        return ValidationResult(
+            is_valid=payload["isValid"],
+            error_count=payload["errorCount"],
+            warning_count=payload["warningCount"],
+            errors=[CompilationError(**e) for e in payload["errors"]],
+        )
+
     def validate_many(
         self, sources: Iterable[tuple[str, str]]
     ) -> list[ValidationResult]:
