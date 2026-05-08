@@ -144,7 +144,7 @@ class GGUFGenerator:
         gguf_path: str | Path,
         n_ctx: int = 4096,
         n_threads: int | None = None,
-        n_gpu_layers: int = 0,
+        n_gpu_layers: int = -1,    # default: offload all layers (Metal/CUDA when present)
         temp: float = 0.0,
         max_tokens: int = 1500,
     ) -> None:

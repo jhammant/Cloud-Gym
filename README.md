@@ -130,6 +130,30 @@ cloud-gym invert            # Generate broken variants
 cloud-gym export            # Export training pairs
 ```
 
+## taxify: Natural Language → Taxi schema
+
+Companion CLI for generating [Taxi](https://taxilang.org) schemas (the language used by [Orbital](https://orbitalhq.com)) from plain-English descriptions. Same pipeline pattern as `stackfix`, applied to a different domain.
+
+```bash
+pip install stackfix  # ships taxify too
+taxify "a Customer model with id and email"
+taxify "Add an Order service" --schema customer.taxi
+```
+
+### Headline benchmark (100 entries, 40 easy / 30 schema-aware / 30 open-ended)
+
+| Model | pass | easy | sa | oe | s/q |
+|---|---:|---:|---:|---:|---:|
+| **taxi-nl-3b MLX (4-bit)** | **95%** | 98 | 97 | 90 | 1.2 |
+| **taxi-nl-3b Q4 GGUF (Metal/CUDA)** | 87% | 92 | 97 | 70 | **0.7** |
+| qwen2.5-coder:32b + context-stuffing | 80% | 90 | 97 | 50 | 6.7 |
+| qwen3-coder-next + context-stuffing | 72% | 90 | 90 | 30 | 2.6 |
+| qwen2.5-coder:32b plain | 30% | 28 | 63 | 0 | 5.9 |
+
+The fine-tuned 3B beats the context-stuffed 32B by 7–15 points at ~10× lower latency. Plain-prompt baselines (no Taxi context) collapse to 19–30% — a small fine-tune outperforms order-of-magnitude larger general models on the in-domain task.
+
+Model: [Tetsuto/taxi-nl-3b-gguf](https://huggingface.co/Tetsuto/taxi-nl-3b-gguf).
+
 ## Project Structure
 
 ```text
@@ -140,7 +164,8 @@ cloudgym/
   inverter/     Fault injection engines
   generator/    Training data pipeline
   benchmark/    Evaluation harness
-  fixer/        stackfix CLI tool + model backends
+  fixer/        stackfix CLI tool + model backends (IaC repair)
+  taxi/         taxify CLI + strict taxilang validator (NL→Taxi)
 scripts/        Training, evaluation, and export scripts
 examples/       Broken IaC examples + use case docs
 ```
