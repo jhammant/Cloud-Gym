@@ -61,6 +61,46 @@ def _strip_fences(text: str) -> str:
     return text
 
 
+_DECL_RE = re.compile(
+    r"^\s*(?:closed\s+)?(type|model|enum|annotation|service)\s+([A-Za-z_]\w*)\b",
+    re.MULTILINE,
+)
+
+
+def _strip_redeclared(output: str, in_context_schema: str) -> str:
+    """Remove top-level blocks from `output` whose declared symbol is already
+    declared in `in_context_schema`. The fine-tuned model often replays the
+    in-context schema before adding the requested extension, which causes the
+    strict validator to fail with 'Symbol X already declared'. This dedup is
+    a formatting fix only — the underlying answer is correct."""
+    if not in_context_schema:
+        return output
+    ctx_names = {m.group(2) for m in _DECL_RE.finditer(in_context_schema)}
+    if not ctx_names:
+        return output
+    lines = output.splitlines()
+    out_lines: list[str] = []
+    i = 0
+    while i < len(lines):
+        m = _DECL_RE.match(lines[i])
+        if m and m.group(2) in ctx_names:
+            # skip this block — find its end
+            if "{" not in lines[i]:
+                # single-line decl (e.g., `type Foo inherits String`)
+                i += 1
+                continue
+            depth = lines[i].count("{") - lines[i].count("}")
+            j = i + 1
+            while j < len(lines) and depth > 0:
+                depth += lines[j].count("{") - lines[j].count("}")
+                j += 1
+            i = j
+            continue
+        out_lines.append(lines[i])
+        i += 1
+    return "\n".join(out_lines).strip()
+
+
 # ----------------------------------------------------------------------- adapters
 @dataclass
 class ModelOutput:
@@ -334,6 +374,12 @@ class EntryResult:
 def score_entry(entry: dict, output_text: str, validator: TaxiValidator, elapsed: float, error: str | None) -> EntryResult:
     cleaned = _strip_fences(output_text)
     in_ctx = entry.get("in_context_schema")
+    if in_ctx and cleaned:
+        # Schema-aware fix: the fine-tuned model often replays the in-context
+        # schema verbatim before adding its extension, which trips strict
+        # 'already declared' errors. Drop blocks whose name is already in
+        # the in-context schema.
+        cleaned = _strip_redeclared(cleaned, in_ctx)
     is_valid, error_count, first_error = False, 0, None
     if cleaned:
         try:
