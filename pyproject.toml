@@ -41,6 +41,7 @@ ollama = [
 [project.scripts]
 cloud-gym = "cloudgym.cli:main"
 stackfix = "cloudgym.fixer.cli:main"
+taxify = "cloudgym.taxi.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["cloudgym"]

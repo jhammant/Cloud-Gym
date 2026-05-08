@@ -216,6 +216,36 @@ class LMStudioRespAPIAdapter(ModelAdapter):
         return ModelOutput(text=text, elapsed_s=time.time() - t0)
 
 
+class GGUFAdapter(ModelAdapter):
+    """Local GGUF via llama-cpp-python. Spec form: `gguf:<path>`."""
+    def __init__(self, gguf_path: str, n_ctx: int = 4096, temp: float = 0.0,
+                 label: str | None = None) -> None:
+        self.gguf_path = gguf_path
+        self.n_ctx = n_ctx
+        self.temp = temp
+        self.name = label or f"gguf:{Path(gguf_path).name}"
+        self._llm = None
+
+    def _ensure_loaded(self):
+        if self._llm is not None: return
+        from llama_cpp import Llama
+        self._llm = Llama(model_path=self.gguf_path, n_ctx=self.n_ctx, n_gpu_layers=0, verbose=False)
+
+    def generate(self, system: str, user: str, max_tokens: int = 1200) -> ModelOutput:
+        t0 = time.time()
+        try:
+            self._ensure_loaded()
+            resp = self._llm.create_chat_completion(
+                messages=[{"role": "system", "content": system},
+                          {"role": "user", "content": user}],
+                temperature=self.temp, max_tokens=max_tokens,
+            )
+            text = resp["choices"][0]["message"]["content"]
+        except Exception as e:
+            return ModelOutput(text="", elapsed_s=time.time() - t0, error=f"{type(e).__name__}: {e}")
+        return ModelOutput(text=text or "", elapsed_s=time.time() - t0)
+
+
 class MLXAdapter(ModelAdapter):
     """Local MLX with optional LoRA adapter dir.
 
@@ -289,6 +319,8 @@ def make_adapter(spec: str) -> ModelAdapter:
             base, adapter = rest.split("@", 1)
             return MLXAdapter(base, adapter_path=adapter)
         return MLXAdapter(rest)
+    if spec.startswith("gguf:"):
+        return GGUFAdapter(spec[len("gguf:"):])
     raise SystemExit(f"unknown adapter spec: {spec}")
 
 
