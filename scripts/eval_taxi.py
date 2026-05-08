@@ -176,12 +176,59 @@ class LMStudioRespAPIAdapter(ModelAdapter):
         return ModelOutput(text=text, elapsed_s=time.time() - t0)
 
 
+class MLXAdapter(ModelAdapter):
+    """Local MLX with optional LoRA adapter dir.
+
+    Spec form: `mlx:<base_model>` or `mlx:<base_model>@<adapter_dir>`.
+    Adapter dir must contain `adapters.safetensors` + `adapter_config.json`.
+    Uses temp=0 for deterministic eval.
+    """
+    def __init__(self, base_model: str, adapter_path: str | None = None,
+                 temp: float = 0.0, label: str | None = None) -> None:
+        self.base_model = base_model
+        self.adapter_path = adapter_path
+        self.temp = temp
+        self.name = label or (
+            f"mlx:{base_model}@{Path(adapter_path).name}" if adapter_path else f"mlx:{base_model}"
+        )
+        self._model = None
+        self._tokenizer = None
+
+    def _ensure_loaded(self):
+        if self._model is not None:
+            return
+        from mlx_lm import load
+        adapter = self.adapter_path if (self.adapter_path and Path(self.adapter_path).exists()) else None
+        self._model, self._tokenizer = load(self.base_model, adapter_path=adapter)
+
+    def generate(self, system: str, user: str, max_tokens: int = 1200) -> ModelOutput:
+        from mlx_lm import generate
+        from mlx_lm.sample_utils import make_sampler
+        t0 = time.time()
+        try:
+            self._ensure_loaded()
+            messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+            prompt_text = self._tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
+            sampler = make_sampler(temp=self.temp)
+            text = generate(
+                self._model, self._tokenizer, prompt=prompt_text,
+                max_tokens=max_tokens, sampler=sampler,
+            )
+        except Exception as e:
+            return ModelOutput(text="", elapsed_s=time.time() - t0, error=f"{type(e).__name__}: {e}")
+        return ModelOutput(text=text or "", elapsed_s=time.time() - t0)
+
+
 def make_adapter(spec: str) -> ModelAdapter:
     """Parse adapter spec strings:
        ollama:<model>
-       lmstudio:<model>            (OpenAI-compatible /v1/chat/completions)
-       lmstudio-api:<model>        (LMStudio /api/v1/chat 'responses' endpoint)
+       lmstudio:<model>                          (OpenAI-compatible /v1/chat/completions)
+       lmstudio-api:<model>                      (LMStudio /api/v1/chat 'responses' endpoint)
        openrouter:<model>
+       mlx:<base>                                (no adapter, base model only)
+       mlx:<base>@<adapter_dir>                  (base + LoRA adapter dir)
     """
     if spec.startswith("ollama:"):
         return OllamaAdapter(spec[len("ollama:"):])
@@ -196,6 +243,12 @@ def make_adapter(spec: str) -> ModelAdapter:
             raise SystemExit("OPENROUTER_API_KEY not set")
         return OpenAICompatAdapter(spec[len("openrouter:"):], host="https://openrouter.ai/api/v1",
                                    api_key=api_key, label=f"openrouter:{spec[len('openrouter:'):]}")
+    if spec.startswith("mlx:"):
+        rest = spec[len("mlx:"):]
+        if "@" in rest:
+            base, adapter = rest.split("@", 1)
+            return MLXAdapter(base, adapter_path=adapter)
+        return MLXAdapter(rest)
     raise SystemExit(f"unknown adapter spec: {spec}")
 
 

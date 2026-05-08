@@ -12,6 +12,8 @@ Metrics:
 | Model | n | pass | decl | field | s/q | easy / sa / oe |
 |---|--:|--:|--:|--:|--:|---|
 | lmstudio-api:qwen/qwen3-coder-next [plain] | 100 | 19% | 46% | 50% | 2.1 | 18 / 40 / 0 |
+| mlx_mlx_community_Qwen2_5_Coder_3B_Instruct_4bit_taxi_nl_adapter_iter400 [plain] | 100 | 55% | 74% | 59% | 1.1 | 72 / 23 / 63 |
+| mlx_mlx_community_Qwen2_5_Coder_3B_Instruct_4bit_taxi_nl_adapter [plain] | 100 | 57% | 74% | 61% | 1.0 | 78 / 33 / 53 |
 | ollama:qwen2.5-coder:32b [plain] | 100 | 30% | 35% | 53% | 5.9 | 28 / 63 / 0 |
 | ollama:qwen2.5-coder:7b [plain] | 100 | 24% | 51% | 48% | 1.5 | 38 / 30 / 0 |
 | lmstudio-api:qwen/qwen3-coder-next [stuffed] | 100 | 72% | 82% | 57% | 2.6 | 90 / 90 / 30 |

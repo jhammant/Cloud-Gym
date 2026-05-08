@@ -65,3 +65,7 @@ data/taxi/reverse_progress*.json
 data/taxi/reverse_pairs_probe.jsonl
 data/taxi/forward_progress*.json
 data/taxi/forward_pairs_probe.jsonl
+# adapter weights & regenerable training data — too large for git
+data/finetune-taxi/
+data/models/taxi-nl-adapter/0000*_adapters.safetensors
+data/models/taxi-nl-adapter-iter*/

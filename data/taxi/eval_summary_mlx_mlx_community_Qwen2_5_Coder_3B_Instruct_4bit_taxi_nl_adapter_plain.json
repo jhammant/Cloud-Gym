@@ -1,0 +1,27 @@
+{
+  "n": 100,
+  "pass_rate": 0.57,
+  "field_recall": 0.608811827061827,
+  "decl_recall": 0.74447668997669,
+  "avg_elapsed_s": 1.0019549441337585,
+  "per_difficulty": {
+    "easy": {
+      "n": 40,
+      "pass_rate": 0.775,
+      "field_recall": 0.6607142857142857,
+      "decl_recall": 0.73125
+    },
+    "schema_aware": {
+      "n": 30,
+      "pass_rate": 0.3333333333333333,
+      "field_recall": 0.7711111111111111,
+      "decl_recall": 0.85
+    },
+    "open_ended": {
+      "n": 30,
+      "pass_rate": 0.5333333333333333,
+      "field_recall": 0.3773092648092648,
+      "decl_recall": 0.6565889665889666
+    }
+  }
+}
